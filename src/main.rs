@@ -38,8 +38,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
+    // create an array for layer names. 
+    let layer_names: Vec<std::ffi::CString> = vec![std::ffi::CString::new("VK_LAYER_KHRONOS_validation").unwrap()];
+
+    // map to a vector. 
+    let layer_name_pointers: Vec<*const i8> = layer_names
+        .iter()
+        .map(|layer_name| layer_name.as_ptr())
+        .collect();
+
+    // vector of extenion name pointers
+    let extension_name_pointers: Vec<*const i8> =
+        vec![ash::extensions::ext::DebugUtils::name().as_ptr()];
+
     let instance_create_info = vk::InstanceCreateInfo {
         p_application_info: &app_info,
+        pp_enabled_layer_names: layer_name_pointers.as_ptr(),
+        enabled_layer_count: layer_name_pointers.len() as u32, 
+        pp_enabled_extension_names: extension_name_pointers.as_ptr(),
+        enabled_extension_count: extension_name_pointers.len() as u32,
         ..Default::default()
     };
     dbg!(&instance_create_info);
@@ -47,8 +64,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // create instance with some customisation - from above.  
     let instance = unsafe { entry.create_instance(&instance_create_info, None)? };
 
+    // create the extension and tag onto the entry point / instance. 
+    let debug_utils = ash::extensions::ext::DebugUtils::new(&entry, &instance);
 
-    unsafe { instance.destroy_instance(None) };
+    // setup the extension
+    let debugcreateinfo = vk::DebugUtilsMessengerCreateInfoEXT {
+        message_severity: vk::DebugUtilsMessageSeverityFlagsEXT::WARNING
+        | vk::DebugUtilsMessageSeverityFlagsEXT::VERBOSE
+        | vk::DebugUtilsMessageSeverityFlagsEXT::INFO
+        | vk::DebugUtilsMessageSeverityFlagsEXT::ERROR,
+        message_type: vk::DebugUtilsMessageTypeFlagsEXT::GENERAL 
+        | vk::DebugUtilsMessageTypeFlagsEXT::PERFORMANCE
+        | vk::DebugUtilsMessageTypeFlagsEXT::VALIDATION,
+        pfn_user_callback: Some(vulkan_debug_utils_callback), 
+        ..Default::default()
+    };
+
+    // Creat the messenger based on the structure above. 
+    let utils_messenger = unsafe { debug_utils.create_debug_utils_messenger(&debugcreateinfo, None)? };
+
+    // clean up. 
+    unsafe { 
+        instance.destroy_instance(None) 
+    };
     Ok(())
 }
 
