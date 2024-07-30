@@ -55,7 +55,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .application_info(&app_info)
         .enabled_layer_names(&layer_name_pointers)
         .enabled_extension_names(&extension_name_pointers);
-    dbg!(&instance_create_info);
+   
+    // doesn't work?
+    //dbg!(&instance_create_info);
 
     // create instance with some customisation - from above.  
     let instance = unsafe { entry.create_instance(&instance_create_info, None)? };
@@ -64,17 +66,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let debug_utils = ash::extensions::ext::DebugUtils::new(&entry, &instance);
 
     // setup the extension
-    let debugcreateinfo = vk::DebugUtilsMessengerCreateInfoEXT {
-        message_severity: vk::DebugUtilsMessageSeverityFlagsEXT::WARNING
-        | vk::DebugUtilsMessageSeverityFlagsEXT::VERBOSE
-        | vk::DebugUtilsMessageSeverityFlagsEXT::INFO
-        | vk::DebugUtilsMessageSeverityFlagsEXT::ERROR,
-        message_type: vk::DebugUtilsMessageTypeFlagsEXT::GENERAL 
-        | vk::DebugUtilsMessageTypeFlagsEXT::PERFORMANCE
-        | vk::DebugUtilsMessageTypeFlagsEXT::VALIDATION,
-        pfn_user_callback: Some(vulkan_debug_utils_callback), 
-        ..Default::default()
-    };
+    let debugcreateinfo = vk::DebugUtilsMessengerCreateInfoEXT::builder()
+        .message_severity(
+            vk::DebugUtilsMessageSeverityFlagsEXT::WARNING
+                | vk::DebugUtilsMessageSeverityFlagsEXT::VERBOSE
+                | vk::DebugUtilsMessageSeverityFlagsEXT::INFO
+                | vk::DebugUtilsMessageSeverityFlagsEXT::ERROR,
+        )
+        .message_type(
+            vk::DebugUtilsMessageTypeFlagsEXT::GENERAL
+                | vk::DebugUtilsMessageTypeFlagsEXT::PERFORMANCE
+                | vk::DebugUtilsMessageTypeFlagsEXT::VALIDATION,
+        )
+        .pfn_user_callback(Some(vulkan_debug_utils_callback));
 
     // Create the messenger based on the structure above. 
     let utils_messenger = unsafe { debug_utils.create_debug_utils_messenger(&debugcreateinfo, None)? };
