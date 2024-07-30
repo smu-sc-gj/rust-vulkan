@@ -50,23 +50,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let extension_name_pointers: Vec<*const i8> =
         vec![ash::extensions::ext::DebugUtils::name().as_ptr()];
 
-    // create the instance info - us a builder.
-    let instance_create_info = vk::InstanceCreateInfo::builder()
-        .application_info(&app_info)
-        .enabled_layer_names(&layer_name_pointers)
-        .enabled_extension_names(&extension_name_pointers);
-   
-    // doesn't work?
-    //dbg!(&instance_create_info);
-
-    // create instance with some customisation - from above.  
-    let instance = unsafe { entry.create_instance(&instance_create_info, None)? };
-
-    // create the extension and tag onto the entry point / instance. 
-    let debug_utils = ash::extensions::ext::DebugUtils::new(&entry, &instance);
-
-    // setup the extension
-    let debugcreateinfo = vk::DebugUtilsMessengerCreateInfoEXT::builder()
+    // setup the extension - moved earlier, this is so we can 
+    // pass this to the creation function (and get errors back).
+    let mut debugcreateinfo = vk::DebugUtilsMessengerCreateInfoEXT::builder()
         .message_severity(
             vk::DebugUtilsMessageSeverityFlagsEXT::WARNING
                 | vk::DebugUtilsMessageSeverityFlagsEXT::VERBOSE
@@ -79,6 +65,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 | vk::DebugUtilsMessageTypeFlagsEXT::VALIDATION,
         )
         .pfn_user_callback(Some(vulkan_debug_utils_callback));
+
+
+    // create the instance info - us a builder.
+    let instance_create_info = vk::InstanceCreateInfo::builder()
+        .push_next(&mut debugcreateinfo)
+        .application_info(&app_info)
+        .enabled_layer_names(&layer_name_pointers)
+        .enabled_extension_names(&extension_name_pointers);
+   
+    // doesn't work?
+    //dbg!(&instance_create_info);
+
+    // create instance with some customisation - from above.  
+    let instance = unsafe { entry.create_instance(&instance_create_info, None)? };
+
+    // create the extension and tag onto the entry point / instance. 
+    let debug_utils = ash::extensions::ext::DebugUtils::new(&entry, &instance);
 
     // Create the messenger based on the structure above. 
     let utils_messenger = unsafe { debug_utils.create_debug_utils_messenger(&debugcreateinfo, None)? };
