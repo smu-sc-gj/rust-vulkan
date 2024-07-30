@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // create an array for layer names. 
     let layer_names: Vec<std::ffi::CString> =
         vec![std::ffi::CString::new("VK_LAYER_KHRONOS_validation").unwrap()];
-        
+
     // map to a vector. 
     let layer_name_pointers: Vec<*const i8> = layer_names
         .iter()
@@ -50,14 +50,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let extension_name_pointers: Vec<*const i8> =
         vec![ash::extensions::ext::DebugUtils::name().as_ptr()];
 
-    let instance_create_info = vk::InstanceCreateInfo {
-        p_application_info: &app_info,
-        pp_enabled_layer_names: layer_name_pointers.as_ptr(),
-        enabled_layer_count: layer_name_pointers.len() as u32, 
-        pp_enabled_extension_names: extension_name_pointers.as_ptr(),
-        enabled_extension_count: extension_name_pointers.len() as u32,
-        ..Default::default()
-    };
+    // create the instance info - us a builder.
+    let instance_create_info = vk::InstanceCreateInfo::builder()
+        .application_info(&app_info)
+        .enabled_layer_names(&layer_name_pointers)
+        .enabled_extension_names(&extension_name_pointers);
     dbg!(&instance_create_info);
 
     // create instance with some customisation - from above.  
