@@ -29,16 +29,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let appname = std::ffi::CString::new("The Black Window").unwrap();
 
     // application info.
-    /* 
-    let app_info = vk::ApplicationInfo {
-        p_application_name: appname.as_ptr(),
-        p_engine_name: enginename.as_ptr(),
-        engine_version: vk::make_version(0, 42, 0),
-        application_version: vk::make_version(0, 0, 1), 
-        api_version: vk::make_version(1, 0, 106),
-        ..Default::default()
-    };*/
-
     let app_info = vk::ApplicationInfo::builder()
     .application_name(&appname)
     .application_version(vk::make_version(0, 0, 1))
@@ -47,8 +37,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .api_version(vk::make_version(1, 0, 106));
 
     // create an array for layer names. 
-    let layer_names: Vec<std::ffi::CString> = vec![std::ffi::CString::new("VK_LAYER_KHRONOS_validation").unwrap()];
-
+    let layer_names: Vec<std::ffi::CString> =
+        vec![std::ffi::CString::new("VK_LAYER_KHRONOS_validation").unwrap()];
+        
     // map to a vector. 
     let layer_name_pointers: Vec<*const i8> = layer_names
         .iter()
