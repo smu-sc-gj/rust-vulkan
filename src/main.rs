@@ -28,7 +28,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let enginename = std::ffi::CString::new("UnknownGameEngine").unwrap();
     let appname = std::ffi::CString::new("The Black Window").unwrap();
 
-    // application info. 
+    // application info.
+    /* 
     let app_info = vk::ApplicationInfo {
         p_application_name: appname.as_ptr(),
         p_engine_name: enginename.as_ptr(),
@@ -36,7 +37,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         application_version: vk::make_version(0, 0, 1), 
         api_version: vk::make_version(1, 0, 106),
         ..Default::default()
-    };
+    };*/
+
+    let app_info = vk::ApplicationInfo::builder()
+    .application_name(&appname)
+    .application_version(vk::make_version(0, 0, 1))
+    .engine_name(&enginename)
+    .engine_version(vk::make_version(0, 42, 0))
+    .api_version(vk::make_version(1, 0, 106));
 
     // create an array for layer names. 
     let layer_names: Vec<std::ffi::CString> = vec![std::ffi::CString::new("VK_LAYER_KHRONOS_validation").unwrap()];
@@ -84,10 +92,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let utils_messenger = unsafe { debug_utils.create_debug_utils_messenger(&debugcreateinfo, None)? };
 
     // clean up. 
-
-    debug_utils.destroy_debug_utils_messenger(utils_messenger, None);
-
     unsafe { 
+        debug_utils.destroy_debug_utils_messenger(utils_messenger, None);
         instance.destroy_instance(None) 
     };
     Ok(())
