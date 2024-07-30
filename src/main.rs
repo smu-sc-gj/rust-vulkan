@@ -80,10 +80,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
-    // Creat the messenger based on the structure above. 
+    // Create the messenger based on the structure above. 
     let utils_messenger = unsafe { debug_utils.create_debug_utils_messenger(&debugcreateinfo, None)? };
 
     // clean up. 
+
+    debug_utils.destroy_debug_utils_messenger(utils_messenger, None);
+
     unsafe { 
         instance.destroy_instance(None) 
     };
