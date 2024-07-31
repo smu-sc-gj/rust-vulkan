@@ -1,4 +1,5 @@
 
+use ash::version::DeviceV1_0;
 use ash::version::EntryV1_0;
 use ash::version::InstanceV1_0;
 use ash::vk;
@@ -134,8 +135,67 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         chosen.expect("Tried to unwrap chosen graphics card: No discrete graphics card found!")
     };
 
-   
+    // Setup queues - data transfer, graphics or computing
+    let queue_family_properties = 
+        unsafe { instance.get_physical_device_queue_family_properties(physical_device) };
+    dbg!(&queue_family_properties);
+
+    let queue_family_indicies = {
+        let mut found_graphics_q_index = None;
+        let mut found_transfer_q_index = None;
+        // let mut found_compute_q_index = None;
+
+        for(index, queue_family) in queue_family_properties.iter().enumerate() {
+            if queue_family.queue_count > 0 && queue_family.queue_flags.contains(vk::QueueFlags::GRAPHICS) {
+                found_graphics_q_index = Some( index as u32);
+            }
+            
+            if queue_family.queue_count > 0 && queue_family.queue_flags.contains(vk::QueueFlags::TRANSFER) {
+                if found_transfer_q_index.is_none() 
+                    || !queue_family.queue_flags.contains(vk::QueueFlags::GRAPHICS) {
+                        found_transfer_q_index = Some(index as u32);
+                    }
+            }
+        }
+
+        // make a tuple
+        (
+            found_graphics_q_index.unwrap(),
+            found_transfer_q_index.unwrap(),
+        )
+    };
+
+    // Create a logical device as a primary interface to the physical device
+
+    let priorities = [1.0f32];
+    let queue_infos = [
+        vk::DeviceQueueCreateInfo::builder()
+            .queue_family_index(queue_family_indicies.0)
+            .queue_priorities(&priorities)
+            .build(),
+        vk::DeviceQueueCreateInfo::builder()
+            .queue_family_index(queue_family_indicies.1)
+            .queue_priorities(&priorities)
+            .build(),
+    ];
+
+    let device_create_info = vk::DeviceCreateInfo::builder()
+        .queue_create_infos(&queue_infos)
+        .enabled_layer_names(&layer_name_pointers);
+
+    let logical_device = 
+        unsafe { instance.create_device(physical_device, &device_create_info, None)? };
+
+    let graphics_queue = unsafe { logical_device.get_device_queue(queue_family_indicies.0, 0) };
+    let transfer_queue = unsafe { logical_device.get_device_queue(queue_family_indicies.1, 0) };
+
     // clean up. 
+    unsafe {
+        logical_device.destroy_device(None);
+        debug_utils.destroy_debug_utils_messenger(utils_messenger, None);
+        instance.destroy_instance(None)
+    };
+
     unsafe { 
         debug_utils.destroy_debug_utils_messenger(utils_messenger, None);
         instance.destroy_instance(None) 
