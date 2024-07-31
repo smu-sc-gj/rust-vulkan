@@ -4,8 +4,9 @@ Found a nice set of guides on using something called [Ash](https://crates.io/cra
 
 Tutorial I'm following is this [ashen-aeten](https://hoj-senna.github.io/ashen-aetna/text/001_Plan.html)
 
-This is my [current page](https://hoj-senna.github.io/ashen-aetna/text/004_Physical_device.html) if I remembered to update the link!
+This is my [current page](https://hoj-senna.github.io/ashen-aetna/text/005_Queues.html) if I remembered to update the link!
 
 ## Progress Log ##
 24-5-2024 Started work, setup the repo and made a start on the reading. 
 30-7-2024 Finished off the validation layer, lots of distractions so might want to go back and revisit this. I need to look up the "builder pattern" and try and use this in my stuff.
+31-7-20224 Finihsed the Physical Devices section, currently a little limited as it goes for the last descrete graphics card. No fall back to the onboard if there isn't one!
