@@ -86,6 +86,55 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create the messenger based on the structure above. 
     let utils_messenger = unsafe { debug_utils.create_debug_utils_messenger(&debugcreateinfo, None)? };
 
+    // Physical Device setup. 
+    // List devices!
+    let phys_devs = unsafe { instance.enumerate_physical_devices()?};
+    
+    // print for debugging 
+    /* 
+    for p in phys_devs {
+        let props = unsafe { instance.get_physical_device_properties(p)};
+        dbg!(props);
+    }
+    */
+
+    // Don't grab the first one, might be integrated. 
+    /* Mine is: NVIDIA GeForce RTX 2060 (laptop)
+
+    let (physical_devices, physical_device_properties) = {
+        let mut chosen = None;
+        for p in phys_devs {
+            let properties = unsafe { instance.get_physical_device_properties(p) };
+
+            let name = String::from( 
+                unsafe { std::ffi::CStr::from_ptr(properties.device_name.as_ptr()) }
+                    .to_str()
+                    .unwrap(),
+            );
+
+            if name = "NVIDIA GeForce RTX 2060" {
+                chosen = Some((p, properties));
+            }
+        }
+    };
+
+    */
+
+    // Better idea, pick the last non-integrated gpu (i.e. discrete)
+    // - I need a fall back, what if there is no disrete card?!
+    let (physical_device, physical_device_properties) = {
+        let mut chosen = None;
+        for p in phys_devs {
+            let properties = unsafe { instance.get_physical_device_properties(p) };
+            if properties.device_type == vk::PhysicalDeviceType::DISCRETE_GPU {
+                chosen = Some((p, properties));
+            }
+        }
+   
+        chosen.expect("Tried to unwrap chosen graphics card: No discrete graphics card found!")
+    };
+
+   
     // clean up. 
     unsafe { 
         debug_utils.destroy_debug_utils_messenger(utils_messenger, None);
