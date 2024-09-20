@@ -7,8 +7,6 @@ use ash::vk;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // has to be unsafe, this is wrapping a C++ api. 
-
-
     let entry = ash::Entry::new()?; // Returns a result. 
 
     /* The above is shorthand for this ... 
@@ -48,9 +46,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .collect();
 
     // vector of extenion name pointers
-    let extension_name_pointers: Vec<*const i8> =
-        vec![ash::extensions::ext::DebugUtils::name().as_ptr()];
+    // Load linux extensions
+    /* 
+    let extension_name_pointers: Vec<*const i8> = vec![
+        ash::extensions::ext::DebugUtils::name().as_ptr(),
+        ash::extensions::khr::Surface::name().as_ptr(),
+        ash::extensions::khr::XlibSurface::name().as_ptr(),
+    ]; */
 
+    //load windows extensions
+    let extension_name_pointers: Vec<*const i8> = vec![
+        ash::extensions::ext::DebugUtils::name().as_ptr(),
+        ash::extensions::khr::Surface::name().as_ptr(),
+        ash::extensions::khr::Win32Surface::name().as_ptr(),
+    ];    
+    
     // setup the extension - moved earlier, this is so we can 
     // pass this to the creation function (and get errors back).
     let mut debugcreateinfo = vk::DebugUtilsMessengerCreateInfoEXT::builder()
@@ -80,6 +90,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // create instance with some customisation - from above.  
     let instance = unsafe { entry.create_instance(&instance_create_info, None)? };
+
+        // Use winint to setup a window ...
+        let eventloop = winit::event_loop::EventLoop::new();
+        let window = winit::window::Window::new(&eventloop);
+    
+        // Linux window setup:
+        /*
+        use winit::platform::unix::WindowExtUnix;
+        let x11_display = window.xlib_display().unwrap();
+        let x11_window = window.xlib_window().unwrap();
+        let x11_create_info = vk::XlibSurfaceCreateInfoKHR::builder()
+            .window(x11_window)
+            .dpy(x11_display as *mut vk::Display);
+        let xlib_surface_loader = ash::extensions::khr::XlibSurface::new(&entry, &instance);
+        let surface = unsafe { xlib_surface_loader.create_xlib_surface(&x11_create_info, None) }?;
+        let surface_loader = ash::extensions::khr::Surface::new(&entry, &instance);
+        */
+
+    
+    use winit::platform::windows::WindowExtWindows;
+    //let w32_display = window.win32_display().unwrap();
+    let w32_window = window.unwrap();
+    let win32_create_info = vk::Win32SurfaceCreateInfoKHR::builder()
+        .hinstance(w32_window.hinstance())
+        .hwnd(w32_window.hwnd());
+    let win32_surface_loader = ash::extensions::khr::Win32Surface::new(&entry, &instance);
+    let surface = unsafe { win32_surface_loader.create_win32_surface(&win32_create_info, None) }?;
+    let surface_loader = ash::extensions::khr::Surface::new(&entry, &instance);
 
     // create the extension and tag onto the entry point / instance. 
     let debug_utils = ash::extensions::ext::DebugUtils::new(&entry, &instance);
@@ -200,6 +238,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         debug_utils.destroy_debug_utils_messenger(utils_messenger, None);
         instance.destroy_instance(None) 
     };
+
+
+    // destroy the surface
+    unsafe { surface_loader.destroy_surface(surface, None); }
+
     Ok(())
 }
 
