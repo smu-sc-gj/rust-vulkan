@@ -184,7 +184,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // let mut found_compute_q_index = None;
 
         for(index, queue_family) in queue_family_properties.iter().enumerate() {
-            if queue_family.queue_count > 0 && queue_family.queue_flags.contains(vk::QueueFlags::GRAPHICS) {
+            if queue_family.queue_count > 0 
+                && queue_family.queue_flags.contains(vk::QueueFlags::GRAPHICS)
+                && unsafe {
+                    surface_loader.get_physical_device_surface_support(physical_device, index as u32, surface)?
+                } 
+            {
                 found_graphics_q_index = Some( index as u32);
             }
             
