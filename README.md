@@ -4,10 +4,11 @@ Found a nice set of guides on using something called [Ash](https://crates.io/cra
 
 Tutorial I'm following is this [ashen-aeten](https://hoj-senna.github.io/ashen-aetna/text/001_Plan.html)
 
-This is my [current page](https://hoj-senna.github.io/ashen-aetna/text/006_Window.html) if I remembered to update the link!
+This is my [current page](https://hoj-senna.github.io/ashen-aetna/text/007_Swapchain.html) if I remembered to update the link!
 
 ## Progress Log ##
 24-5-2024 Started work, setup the repo and made a start on the reading. 
 30-7-2024 Finished off the validation layer, lots of distractions so might want to go back and revisit this. I need to look up the "builder pattern" and try and use this in my stuff.
 31-7-2024 Finihsed the Physical Devices section, currently a little limited as it goes for the last descrete graphics card. No fall back to the onboard if there isn't one! Also worked through the section on Queues, created a virtual graphics device. Next section is bafflingly called A window?
+20-9-2024 Manged to get through creating a window, I ported this from Linux to Windows10. The version here is X11 but I think I can see how to fudge together a Vulkan window as the calls are there.  Moved on to the Swapchain - right at the start. 
 
